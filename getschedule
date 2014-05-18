@@ -1,0 +1,134 @@
+// A script that searchs the inbox for emails sent by Schedule Pointe Inc. and 
+// creates events on Google Calendar.
+
+function getSchedule()
+{
+  // Get today's date,it will be used to filter the messages.
+  const timeZone = 'GMT-3';
+  var today = formatDate(new Date(), timeZone);
+  
+  // Open or creates the spreadsheet.
+  var mySpreadsheet = openSheetByName("Schedule Pointe");
+  var mySheet = mySpreadsheet.getSheets()[0];
+  
+  // Find messages from sender postmaster@schedulepointe.com and return the first 10.
+  var threads = GmailApp.search('from:postmaster@schedulepointe.com subject:scheduled', 0, 10);
+  
+  var messages = GmailApp.getMessagesForThreads(threads); 
+  
+  // Get the sender email address.
+  var froms = [];
+
+  for(var i = 0; i < threads.length; i++)
+  {
+    froms.push([messages[i][0].getFrom(),messages[i][0].getDate()]);
+  }
+  
+  var todayThreads = [];
+  var messageDate;
+  var messageText;
+  var messageTextSchedulePosition;
+  var messageTextScheduleStartDate;
+  var messageTextScheduleStartTime;
+  var messageTextScheduleEndDate;
+  var messageTextScheduleEndTime;
+  var messageTextScheduleStart;
+  var messageTextScheduleEnd;
+  
+  for( var i = 0; i < threads.length; i++)
+  {
+    messageDate = formatDate(messages[i][0].getDate(), timeZone);
+    messageText = messages[i][0].getPlainBody();
+    messageTextSchedulePosition = messageText.search("Start");
+    messageTextScheduleStartDate = messageText.substr(messageTextSchedulePosition + 12,10);
+    messageTextScheduleStartTime = messageText.substr(messageTextSchedulePosition + 26,8);
+    messageTextScheduleEndDate = messageText.substr(messageTextSchedulePosition + 46,10);
+    messageTextScheduleEndTime = messageText.substr(messageTextSchedulePosition + 60,8);    
+    messageTextScheduleStart = messageTextScheduleStartDate.concat(" ", messageTextScheduleStartTime, " ", timeZone);
+    messageTextScheduleEnd = messageTextScheduleEndDate.concat(" ", messageTextScheduleEndTime, " ", timeZone);
+
+    // Checks when the message arrived so it won't create duplicate events.
+    if((messageDate == today)&&(messages[i][0].getDate() > mySheet.getRange(2, 2).getCell(1, 1).getValue()))
+    { 
+      todayThreads.push([messages[i][0].getFrom(),messages[i][0].getDate(), messageText, messageTextScheduleStart, messageTextScheduleEnd]);
+    }
+    else
+    {
+      if(todayThreads.length == 0) throw new Error( "No new messages" );
+    }
+  }
+  
+  // Insert rows for new messages.
+  mySheet.insertRows(2, todayThreads.length);
+  
+  // Write on the spreadsheet.
+  mySheet.getRange(2,1,todayThreads.length,5).setValues(todayThreads);
+  
+  // Creates an event on calendar for each message
+  var scheduleStart;
+  var scheduleEnd;
+  
+  for(i = 1; i <= todayThreads.length; i++)
+  { 
+    scheduleStart = mySheet.getRange(2, 4, todayThreads.length).getCell(i, 1).getValue();
+    scheduleEnd = mySheet.getRange(2, 5, todayThreads.length).getCell(i, 1).getValue();
+
+    // Create an event on calendar.
+    var event = CalendarApp.getDefaultCalendar().createEvent('Flight - Arrive 1 hour early', new Date(scheduleStart), new Date(scheduleEnd));
+    event.removeAllReminders();
+    event.addEmailReminder(1440); // 24 hours reminder
+    event.addEmailReminder(720); // 12 hours reminder
+    event.addEmailReminder(360); // 6 hours reminder
+    event.addEmailReminder(180); // 3 hours reminder
+    event.addSmsReminder(180); // 3 hours reminder
+  }
+}
+
+
+// Formats the date so we can get rid of the time and stick to the day, month and year.
+
+function formatDate(givenDate, timeZone)
+{
+  return Utilities.formatDate(givenDate, timeZone, "yyyy-MM-dd");
+}
+
+
+// Found this function on stackoverflow.
+// "Overwrite Spreadsheet in Google Apps Script"
+// (http://stackoverflow.com/questions/17036982/overwrite-spreadsheet-in-google-apps-script)
+
+// Returns the Spreadsheet with the given file name. If no such spreadsheet
+// exists, it will be created.
+
+// The function is slightly modified by me to also create the columns headers
+// and freeze the first row when creating a new spreadsheet.
+
+function openSheetByName(filename) 
+{
+  if (arguments.length == 0 || filename =="") throw new Error( "Missing filename." );
+
+  var files = DocsList.getFilesByType('spreadsheet');
+  var spreadSheet;
+  var i = 0;
+  // Loop over all spreadsheet files. Loop ends when we reach the end,
+  // or if we find a matching filename.
+  while ( i < files.length && (files[i].getName() !== filename) )
+    i++;
+
+  if (i == files.length) {
+    // We didn't find the file, so create it.
+    spreadSheet = SpreadsheetApp.create(filename);
+    
+    // Write columns headers and freeze the first row.
+    var sheet = spreadSheet.getSheets()[0];
+    var range = sheet.getRange("A1:E1");
+    var headers = [["Sender", "Date", "Message", "Start Time", "End Time"]];
+    range.setValues(headers);
+    sheet.setFrozenRows(1);
+  }
+  else {
+    // We found it, use it.
+    spreadSheet = SpreadsheetApp.open(files[i]);
+  }
+  return spreadSheet;
+}
