@@ -22,14 +22,14 @@ A Google Apps Script that searches Gmail's Inbox for emails sent by Schedule Poi
       the script is running correctly.
     - You'll need to run the script manually one time. That's because the first time it runs it will require you to               authorize it.
     - Select Run -> getSchedule
-    - Authorize it, and run again to make sure.
+    - Authorize it, and run it again just to make sure.
 
 ## Additional Information
   
 The script will create a new spreadsheet called Schedule Pointe in your Google Drive. It will be used to keep
 it from creating duplicated events. You can also use it to keep track of the messages it processed.
   
-If somehow the spreadsheet gets deleted don't worry, the next time the script runs it will create it again.
+If somehow the spreadsheet gets deleted, don't worry, the next time the script runs it will create it again.
 The only problem is that you may end up having some duplicated events on your calendar.
 
 ## CONTRIBUTORS
