@@ -8,7 +8,7 @@ function getSchedule()
   var today = formatDate(new Date(), timeZone);
   
   // Open or creates the spreadsheet.
-  var mySpreadsheet = openSheetByName("Schedule Pointe");
+  var mySpreadsheet = openSheetByName("Schedule Pointe to Google Calendar");
   var mySheet = mySpreadsheet.getSheets()[0];
   
   // Find messages from sender postmaster@schedulepointe.com and return the first 10.
@@ -35,7 +35,7 @@ function getSchedule()
   var messageTextScheduleStart;
   var messageTextScheduleEnd;
   
-  for( var i = 0; i < threads.length; i++)
+  for(var i = 0; i < threads.length; i++)
   {
     messageDate = formatDate(messages[i][0].getDate(), timeZone);
     messageText = messages[i][0].getPlainBody();
@@ -73,7 +73,6 @@ function getSchedule()
     scheduleStart = mySheet.getRange(2, 4, todayThreads.length).getCell(i, 1).getValue();
     scheduleEnd = mySheet.getRange(2, 5, todayThreads.length).getCell(i, 1).getValue();
 
-    // Create an event on calendar.
     var event = CalendarApp.getDefaultCalendar().createEvent('Flight - Arrive 1 hour early', new Date(scheduleStart), new Date(scheduleEnd));
     event.removeAllReminders();
     event.addEmailReminder(1440); // 24 hours reminder
