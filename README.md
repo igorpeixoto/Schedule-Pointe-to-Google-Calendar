@@ -38,6 +38,6 @@ The only problem is that you may end up having some duplicated events on your ca
 
 ## LICENSE
 
-Use this script at your will, on any document you want and for any purpose, commercial or not. 
+Use this script at your will, for any purpose, commercial or not. 
 
 If you want to modify and redistribute the script, just keep a reference to this repo.
