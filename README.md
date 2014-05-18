@@ -26,7 +26,7 @@ A Google Apps Script that searches Gmail's Inbox for emails sent by Schedule Poi
 
 ## Additional Information
   
-The script will create a new spreadsheet called Schedule Pointe in your Google Drive. It will be used to keep
+The script will create a new spreadsheet called "Schedule Pointe to Google Calendar" in your Google Drive. It will be used to keep
 it from creating duplicated events. You can also use it to keep track of the messages it processed.
   
 If somehow the spreadsheet gets deleted, don't worry, the next time the script runs it will create it again.
