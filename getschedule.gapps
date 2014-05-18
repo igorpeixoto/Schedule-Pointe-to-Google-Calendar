@@ -1,4 +1,4 @@
-// A script that searchs the inbox for emails sent by Schedule Pointe Inc. and 
+// A script that searches the inbox for emails sent by Schedule Pointe Inc. and 
 // creates events on Google Calendar.
 
 function getSchedule()
@@ -11,8 +11,8 @@ function getSchedule()
   var mySpreadsheet = openSheetByName("Schedule Pointe");
   var mySheet = mySpreadsheet.getSheets()[0];
   
-  // Find messages from sender postmaster@schedulepointe.com and return the first 10.
-  var threads = GmailApp.search('from:postmaster@schedulepointe.com subject:scheduled', 0, 10);
+  // Find messages from sender postmaster@schedulepointe.com and return the first 20.
+  var threads = GmailApp.search('from:postmaster@schedulepointe.com subject:scheduled', 0, 20);
   
   var messages = GmailApp.getMessagesForThreads(threads); 
   
