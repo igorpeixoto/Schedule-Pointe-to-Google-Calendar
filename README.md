@@ -1,7 +1,7 @@
 Schedule Pointe to Google Calendar
 ==================================
 
-A Google Apps Script that searchs Gmail's Inbox for emails sent by Schedule Pointe Inc. and creates events on Google Calendar.
+A Google Apps Script that searches Gmail's Inbox for emails sent by Schedule Pointe Inc. and creates events on Google Calendar.
 
 ## Usage
 
@@ -9,7 +9,7 @@ A Google Apps Script that searchs Gmail's Inbox for emails sent by Schedule Poin
     * Open Google Apps Script editor (http://script.google.com)
     * Close the dialogue
     * Clear the myFunction() default empty function and paste the contents of [getschedule.gapps](https://raw.githubusercontent.com/igorpeixoto/Schedule-Pointe-to-Google-Calendar/master/getschedule.gapps) into the code editor
-    * IMPORTANT!!! Change the timezone to your own (it's on line 7 - const timeZone = "GMT-3";)
+    * IMPORTANT!!!  Change the timezone to your own (it's on line 7 - const timeZone = "GMT-3";)  IMPORTANT !!!
     * File -> Save
     
   * Running the script:
