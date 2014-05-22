@@ -9,7 +9,8 @@ A Google Apps Script that searches Gmail's Inbox for emails sent by Schedule Poi
     * Open Google Apps Script editor (http://script.google.com)
     * Close the dialogue
     * Clear the myFunction() default empty function and paste the contents of [getschedule.gapps](https://raw.githubusercontent.com/igorpeixoto/Schedule-Pointe-to-Google-Calendar/master/getschedule.gapps) into the code editor
-    * IMPORTANT!!!  Change the timezone to your own (it's on line 7 - const timeZone = "GMT-3";)  IMPORTANT !!!
+    * IMPORTANT!!!  Change the timezone to your own (it's on line 7 - const timeZone = 'GMT-3';)  IMPORTANT !!!
+    * (Optional) Enter an address for the events created (it's on line 11 - const location = 'address';)
     * File -> Save
     
   * Running the script:
