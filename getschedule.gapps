@@ -7,6 +7,9 @@ function getSchedule()
   const timeZone = 'GMT-3';
   var today = formatDate(new Date(), timeZone);
   
+  // Optinal - Set event location so Google Now can show cards about the traffic 
+  const location = 'address';
+  
   // Open or creates the spreadsheet.
   var mySpreadsheet = openSheetByName("Schedule Pointe to Google Calendar");
   var mySheet = mySpreadsheet.getSheets()[0];
@@ -74,6 +77,7 @@ function getSchedule()
     scheduleEnd = mySheet.getRange(2, 5, todayThreads.length).getCell(i, 1).getValue();
 
     var event = CalendarApp.getDefaultCalendar().createEvent('Flight - Arrive 1 hour early', new Date(scheduleStart), new Date(scheduleEnd));
+    event.setLocation(location);
     event.removeAllReminders();
     event.addEmailReminder(1440); // 24 hours reminder
     event.addEmailReminder(720); // 12 hours reminder
