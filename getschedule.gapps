@@ -30,6 +30,11 @@ function getSchedule()
   var todayThreads = [];
   var messageDate;
   var messageText;
+  var messageTextInstructorPosition;
+  var messageTextInstructor;
+  var messageTextCommaPosition
+  var messageTextResourcePosition;
+  var messageTextResource;
   var messageTextSchedulePosition;
   var messageTextScheduleStartDate;
   var messageTextScheduleStartTime;
@@ -42,7 +47,12 @@ function getSchedule()
   {
     messageDate = formatDate(messages[i][0].getDate(), timeZone);
     messageText = messages[i][0].getPlainBody();
+    messageTextInstructorPosition = messageText.search("Instructor");
+    messageTextCommaPosition = messageText.search(",");
+    messageTextResourcePosition = messageText.search("Resource");
     messageTextSchedulePosition = messageText.search("Start");
+    messageTextInstructor = messageText.substr(messageTextInstructorPosition + 12,messageTextCommaPosition - (messageTextInstructorPosition + 12));
+    messageTextResource = messageText.substr(messageTextResourcePosition + 10, messageTextSchedulePosition - (messageTextResourcePosition + 11));
     messageTextScheduleStartDate = messageText.substr(messageTextSchedulePosition + 12,10);
     messageTextScheduleStartTime = messageText.substr(messageTextSchedulePosition + 26,8);
     messageTextScheduleEndDate = messageText.substr(messageTextSchedulePosition + 46,10);
@@ -53,7 +63,7 @@ function getSchedule()
     // Checks when the message arrived so it won't create duplicate events.
     if((messageDate == today)&&(messages[i][0].getDate() > mySheet.getRange(2, 2).getCell(1, 1).getValue()))
     { 
-      todayThreads.push([messages[i][0].getFrom(),messages[i][0].getDate(), messageText, messageTextScheduleStart, messageTextScheduleEnd]);
+      todayThreads.push([messages[i][0].getFrom(),messages[i][0].getDate(), messageText, messageTextScheduleStart, messageTextScheduleEnd, messageTextInstructor, messageTextResource]);
     }
     else
     {
@@ -65,19 +75,24 @@ function getSchedule()
   mySheet.insertRows(2, todayThreads.length);
   
   // Write on the spreadsheet.
-  mySheet.getRange(2,1,todayThreads.length,5).setValues(todayThreads);
+  mySheet.getRange(2,1,todayThreads.length,7).setValues(todayThreads);
   
   // Creates an event on calendar for each message
   var scheduleStart;
   var scheduleEnd;
+  var instructor;
+  var resource;
   
   for(i = 1; i <= todayThreads.length; i++)
   { 
     scheduleStart = mySheet.getRange(2, 4, todayThreads.length).getCell(i, 1).getValue();
     scheduleEnd = mySheet.getRange(2, 5, todayThreads.length).getCell(i, 1).getValue();
+    instructor = mySheet.getRange(2, 6, todayThreads.length).getCell(i, 1).getValue();
+    resource = mySheet.getRange(2, 7, todayThreads.length).getCell(i, 1).getValue();
 
     var event = CalendarApp.getDefaultCalendar().createEvent('Flight - Arrive 1 hour early', new Date(scheduleStart), new Date(scheduleEnd));
     event.setLocation(location);
+    event.setDescription("Instructor: " + instructor + "\nResource: " + resource);
     event.removeAllReminders();
     event.addEmailReminder(1440); // 24 hours reminder
     event.addEmailReminder(720); // 12 hours reminder
@@ -124,8 +139,8 @@ function openSheetByName(filename)
     
     // Write columns headers and freeze the first row.
     var sheet = spreadSheet.getSheets()[0];
-    var range = sheet.getRange("A1:E1");
-    var headers = [["Sender", "Date", "Message", "Start Time", "End Time"]];
+    var range = sheet.getRange("A1:G1");
+    var headers = [["Sender", "Date", "Message", "Start Time", "End Time", "Instructor", "Resource"]];
     range.setValues(headers);
     sheet.setFrozenRows(1);
   }
