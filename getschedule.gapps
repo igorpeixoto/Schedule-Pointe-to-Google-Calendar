@@ -24,7 +24,10 @@ function getSchedule()
 
   for(var i = 0; i < threads.length; i++)
   {
-    froms.push([messages[i][0].getFrom(),messages[i][0].getDate()]);
+   for(var j = 0; j < threads[i].getMessageCount(); j++)
+   {
+     froms.push([messages[i][j].getFrom(),messages[i][j].getDate()]);
+   }
   }
   
   var todayThreads = [];
@@ -45,30 +48,33 @@ function getSchedule()
   
   for(var i = 0; i < threads.length; i++)
   {
-    messageDate = formatDate(messages[i][0].getDate(), timeZone);
-    messageText = messages[i][0].getPlainBody();
-    messageTextInstructorPosition = messageText.search("Instructor");
-    messageTextCommaPosition = messageText.search(",");
-    messageTextResourcePosition = messageText.search("Resource");
-    messageTextSchedulePosition = messageText.search("Start");
-    messageTextInstructor = messageText.substr(messageTextInstructorPosition + 12,messageTextCommaPosition - (messageTextInstructorPosition + 12));
-    messageTextResource = messageText.substr(messageTextResourcePosition + 10, messageTextSchedulePosition - (messageTextResourcePosition + 11));
-    messageTextScheduleStartDate = messageText.substr(messageTextSchedulePosition + 12,10);
-    messageTextScheduleStartTime = messageText.substr(messageTextSchedulePosition + 26,8);
-    messageTextScheduleEndDate = messageText.substr(messageTextSchedulePosition + 46,10);
-    messageTextScheduleEndTime = messageText.substr(messageTextSchedulePosition + 60,8);    
-    messageTextScheduleStart = messageTextScheduleStartDate.concat(" ", messageTextScheduleStartTime, " ", timeZone);
-    messageTextScheduleEnd = messageTextScheduleEndDate.concat(" ", messageTextScheduleEndTime, " ", timeZone);
-
-    // Checks when the message arrived so it won't create duplicate events.
-    if((messageDate == today)&&(messages[i][0].getDate() > mySheet.getRange(2, 2).getCell(1, 1).getValue()))
-    { 
-      todayThreads.push([messages[i][0].getFrom(),messages[i][0].getDate(), messageText, messageTextScheduleStart, messageTextScheduleEnd, messageTextInstructor, messageTextResource]);
-    }
-    else
+    for(var j = 0; j < threads[i].getMessageCount(); j++)
     {
-      if(todayThreads.length == 0) throw new Error( "No new messages" );
-    }
+      messageDate = formatDate(messages[i][j].getDate(), timeZone);
+      messageText = messages[i][j].getPlainBody();
+      messageTextInstructorPosition = messageText.search("Instructor");
+      messageTextCommaPosition = messageText.search(",");
+      messageTextResourcePosition = messageText.search("Resource");
+      messageTextSchedulePosition = messageText.search("Start");
+      messageTextInstructor = messageText.substr(messageTextInstructorPosition + 12,messageTextCommaPosition - (messageTextInstructorPosition + 12));
+      messageTextResource = messageText.substr(messageTextResourcePosition + 10, messageTextSchedulePosition - (messageTextResourcePosition + 11));
+      messageTextScheduleStartDate = messageText.substr(messageTextSchedulePosition + 12,10);
+      messageTextScheduleStartTime = messageText.substr(messageTextSchedulePosition + 26,8);
+      messageTextScheduleEndDate = messageText.substr(messageTextSchedulePosition + 46,10);
+      messageTextScheduleEndTime = messageText.substr(messageTextSchedulePosition + 60,8);    
+      messageTextScheduleStart = messageTextScheduleStartDate.concat(" ", messageTextScheduleStartTime, " ", timeZone);
+      messageTextScheduleEnd = messageTextScheduleEndDate.concat(" ", messageTextScheduleEndTime, " ", timeZone);
+
+      // Checks when the message arrived so it won't create duplicate events.
+      if((messageDate == today)&&(messages[i][j].getDate() > mySheet.getRange(2, 2).getCell(1, 1).getValue()))
+      { 
+        todayThreads.push([messages[i][j].getFrom(),messages[i][j].getDate(), messageText, messageTextScheduleStart, messageTextScheduleEnd, messageTextInstructor, messageTextResource]);
+      }
+      else
+      {
+        if(todayThreads.length == 0) throw new Error( "No new messages" );
+      }
+    }  
   }
   
   // Insert rows for new messages.
