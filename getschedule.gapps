@@ -6,13 +6,20 @@ function getSchedule()
   // Get today's date,it will be used to filter the messages.
   const timeZone = 'GMT-3';
   var today = formatDate(new Date(), timeZone);
+  var hour = formatTime(new Date(), timeZone);
+  
+  // Reference time to send email warning no messages were received
+  var hourThreshold = 21;
   
   // Optinal - Set event location so Google Now can show cards about the traffic 
-  const location = 'address';
+  const location = 'Rua Hibisco, 210 C, Campina Verde, 32150-210, Contagem, MG';
   
   // Open or creates the spreadsheet.
-  var mySpreadsheet = openSheetByName("Schedule Pointe to Google Calendar");
+  var mySpreadsheet = openSheetByName("Schedule Pointe to Google Cal");
   var mySheet = mySpreadsheet.getSheets()[0];
+  // Get sheets
+  var messagesSheet = mySpreadsheet.getSheetByName('Messages');
+  //var errorsSheet = mySpreadsheet.getSheetByName('Errors');
   
   // Find messages from sender postmaster@schedulepointe.com and return the first 10.
   var threads = GmailApp.search('from:postmaster@schedulepointe.com subject:scheduled', 0, 10);
@@ -30,6 +37,8 @@ function getSchedule()
    }
   }
   
+  
+  
   var todayThreads = [];
   var messageDate;
   var messageText;
@@ -41,6 +50,8 @@ function getSchedule()
   var messageTextSchedulePosition;
   var messageTextScheduleStartDate;
   var messageTextScheduleStartTime;
+  var messageTextScheduleStartTimeHours;
+  var messageTextScheduleStartTimeMinutes;
   var messageTextScheduleEndDate;
   var messageTextScheduleEndTime;
   var messageTextScheduleStart;
@@ -52,6 +63,7 @@ function getSchedule()
     {
       messageDate = formatDate(messages[i][j].getDate(), timeZone);
       messageText = messages[i][j].getPlainBody();
+      Logger.log(messageText);
       messageTextInstructorPosition = messageText.search("Instructor");
       messageTextCommaPosition = messageText.search(",");
       messageTextResourcePosition = messageText.search("Resource");
@@ -59,29 +71,42 @@ function getSchedule()
       messageTextInstructor = messageText.substr(messageTextInstructorPosition + 12,messageTextCommaPosition - (messageTextInstructorPosition + 12));
       messageTextResource = messageText.substr(messageTextResourcePosition + 10, messageTextSchedulePosition - (messageTextResourcePosition + 11));
       messageTextScheduleStartDate = messageText.substr(messageTextSchedulePosition + 12,10);
-      messageTextScheduleStartTime = messageText.substr(messageTextSchedulePosition + 26,8);
+//      messageTextScheduleStartTime = messageText.substr(messageTextSchedulePosition + 26,8); 
+      messageTextScheduleStartTimeHours = messageText.substr(messageTextSchedulePosition + 26,2);
+      messageTextScheduleStartTimeMinutes = messageText.substr(messageTextSchedulePosition + 29,5);
       messageTextScheduleEndDate = messageText.substr(messageTextSchedulePosition + 46,10);
       messageTextScheduleEndTime = messageText.substr(messageTextSchedulePosition + 60,8);    
-      messageTextScheduleStart = messageTextScheduleStartDate.concat(" ", messageTextScheduleStartTime, " ", timeZone);
+//      messageTextScheduleStart = messageTextScheduleStartDate.concat(" ", messageTextScheduleStartTime, " ", timeZone);
+      messageTextScheduleStart = messageTextScheduleStartDate.concat(" ", (messageTextScheduleStartTimeHours - 1), ":", messageTextScheduleStartTimeMinutes, " ", timeZone);      
       messageTextScheduleEnd = messageTextScheduleEndDate.concat(" ", messageTextScheduleEndTime, " ", timeZone);
 
       // Checks when the message arrived so it won't create duplicate events.
-      if((messageDate == today)&&(messages[i][j].getDate() > mySheet.getRange(2, 2).getCell(1, 1).getValue()))
+      if((messageDate == today)&&(messages[i][j].getDate() > messagesSheet.getRange(2, 2).getCell(1, 1).getValue()))
       { 
         todayThreads.push([messages[i][j].getFrom(),messages[i][j].getDate(), messageText, messageTextScheduleStart, messageTextScheduleEnd, messageTextInstructor, messageTextResource]);
       }
       else
       {
-        if(todayThreads.length == 0) throw new Error( "No new messages" );
+        if(todayThreads.length == 0)
+        { 
+          if(hour >= hourThreshold)
+          {
+            throw new Error( "No new messages" );
+          }
+          else
+          {
+            return;
+          }
+        }
       }
     }  
   }
   
   // Insert rows for new messages.
-  mySheet.insertRows(2, todayThreads.length);
+  messagesSheet.insertRows(2,todayThreads.length);
   
   // Write on the spreadsheet.
-  mySheet.getRange(2,1,todayThreads.length,7).setValues(todayThreads);
+  messagesSheet.getRange(2,1,todayThreads.length,7).setValues(todayThreads);
   
   // Creates an event on calendar for each message
   var scheduleStart;
@@ -91,12 +116,12 @@ function getSchedule()
   
   for(i = 1; i <= todayThreads.length; i++)
   { 
-    scheduleStart = mySheet.getRange(2, 4, todayThreads.length).getCell(i, 1).getValue();
-    scheduleEnd = mySheet.getRange(2, 5, todayThreads.length).getCell(i, 1).getValue();
-    instructor = mySheet.getRange(2, 6, todayThreads.length).getCell(i, 1).getValue();
-    resource = mySheet.getRange(2, 7, todayThreads.length).getCell(i, 1).getValue();
+    scheduleStart = messagesSheet.getRange(2, 4, todayThreads.length).getCell(i, 1).getValue();
+    scheduleEnd = messagesSheet.getRange(2, 5, todayThreads.length).getCell(i, 1).getValue();
+    instructor = messagesSheet.getRange(2, 6, todayThreads.length).getCell(i, 1).getValue();
+    resource = messagesSheet.getRange(2, 7, todayThreads.length).getCell(i, 1).getValue();
 
-    var event = CalendarApp.getDefaultCalendar().createEvent('Flight - Arrive 1 hour early', new Date(scheduleStart), new Date(scheduleEnd));
+    var event = CalendarApp.getDefaultCalendar().createEvent('FLIGHT', new Date(scheduleStart), new Date(scheduleEnd));
     event.setLocation(location);
     event.setDescription("Instructor: " + instructor + "\nResource: " + resource);
     event.removeAllReminders();
@@ -117,42 +142,51 @@ function formatDate(givenDate, timeZone)
 }
 
 
-// Found this function on stackoverflow.
-// "Overwrite Spreadsheet in Google Apps Script"
-// (http://stackoverflow.com/questions/17036982/overwrite-spreadsheet-in-google-apps-script)
+// Formats the date so we can get rid of the day, month and year and stick to Hours.
 
-// Returns the Spreadsheet with the given file name. If no such spreadsheet
-// exists, it will be created.
+function formatTime(givenDate, timeZone)
+{
+  return Utilities.formatDate(givenDate, timeZone, "HH");
+}
 
-// The function is slightly modified by me to also create the columns headers
-// and freeze the first row when creating a new spreadsheet.
+
+// Open the spreadsheet
+
+// Searches for the correct spreadsheet and returns the spreadsheet with the given file name.
+// If no such spreadsheet exists, one will be created.
 
 function openSheetByName(filename) 
-{
+{ 
   if (arguments.length == 0 || filename =="") throw new Error( "Missing filename." );
 
-  var files = DocsList.getFilesByType('spreadsheet');
-  var spreadSheet;
-  var i = 0;
-  // Loop over all spreadsheet files. Loop ends when we reach the end,
-  // or if we find a matching filename.
-  while ( i < files.length && (files[i].getName() !== filename) )
-    i++;
-
-  if (i == files.length) {
-    // We didn't find the file, so create it.
-    spreadSheet = SpreadsheetApp.create(filename);
+  var files = DriveApp.getFilesByName(filename);
+  
+  // Check if the query find anything, if true, gets the file, if not, creates it.
+  var spreadsheet;
+  if (files.hasNext()) {
+   spreadsheet = files.next();
+   // Open the file
+   spreadsheet = SpreadsheetApp.open(spreadsheet);
+    
+  } 
+  else {
+        // Create the file
+    spreadsheet = SpreadsheetApp.create(filename);
     
     // Write columns headers and freeze the first row.
-    var sheet = spreadSheet.getSheets()[0];
+    var sheet = spreadsheet.getSheets()[0];
+    sheet.setName('Messages');
     var range = sheet.getRange("A1:G1");
     var headers = [["Sender", "Date", "Message", "Start Time", "End Time", "Instructor", "Resource"]];
     range.setValues(headers);
     sheet.setFrozenRows(1);
+    
+    // Create a second sheet, write columns headers and freeze the firts row as well.
+    sheet = spreadsheet.insertSheet('Errors', 1);
+    range = sheet.getRange("A1:C1");
+    headers = [["Date", "Reference Time", "Messages Count"]];
+    range.setValues(headers);
+    sheet.setFrozenRows(1); 
   }
-  else {
-    // We found it, use it.
-    spreadSheet = SpreadsheetApp.open(files[i]);
-  }
-  return spreadSheet;
+  return spreadsheet;
 }
