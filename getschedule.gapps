@@ -102,35 +102,40 @@ function getSchedule()
     }  
   }
   
-  // Insert rows for new messages.
-  messagesSheet.insertRows(2,todayThreads.length);
   
-  // Write on the spreadsheet.
-  messagesSheet.getRange(2,1,todayThreads.length,7).setValues(todayThreads);
-  
-  // Creates an event on calendar for each message
-  var scheduleStart;
-  var scheduleEnd;
-  var instructor;
-  var resource;
-  
-  for(i = 1; i <= todayThreads.length; i++)
-  { 
-    scheduleStart = messagesSheet.getRange(2, 4, todayThreads.length).getCell(i, 1).getValue();
-    scheduleEnd = messagesSheet.getRange(2, 5, todayThreads.length).getCell(i, 1).getValue();
-    instructor = messagesSheet.getRange(2, 6, todayThreads.length).getCell(i, 1).getValue();
-    resource = messagesSheet.getRange(2, 7, todayThreads.length).getCell(i, 1).getValue();
-
-    var event = CalendarApp.getDefaultCalendar().createEvent('FLIGHT', new Date(scheduleStart), new Date(scheduleEnd));
-    event.setLocation(location);
-    event.setDescription("Instructor: " + instructor + "\nResource: " + resource);
-    event.removeAllReminders();
-    event.addEmailReminder(1440); // 24 hours reminder
-    event.addEmailReminder(720); // 12 hours reminder
-    event.addEmailReminder(360); // 6 hours reminder
-    event.addEmailReminder(180); // 3 hours reminder
-    event.addSmsReminder(180); // 3 hours reminder
-  }
+    // Check if there are new messages 
+    if(todayThreads.length > 0)
+    {      
+      // Insert rows for new messages.
+      messagesSheet.insertRows(2,todayThreads.length);
+            
+      // Write on the spreadsheet.
+      messagesSheet.getRange(2,1,todayThreads.length,7).setValues(todayThreads);
+            
+      // Creates an event on calendar for each message
+      var scheduleStart;
+      var scheduleEnd;
+      var instructor;
+      var resource;
+            
+      for(i = 1; i <= todayThreads.length; i++)
+      { 
+         scheduleStart = messagesSheet.getRange(2, 4, todayThreads.length).getCell(i, 1).getValue();
+         scheduleEnd = messagesSheet.getRange(2, 5, todayThreads.length).getCell(i, 1).getValue();
+         instructor = messagesSheet.getRange(2, 6, todayThreads.length).getCell(i, 1).getValue();
+         resource = messagesSheet.getRange(2, 7, todayThreads.length).getCell(i, 1).getValue();
+          
+         var event = CalendarApp.getDefaultCalendar().createEvent('FLIGHT', new Date(scheduleStart), new Date(scheduleEnd));
+         event.setLocation(location);
+         event.setDescription("Instructor: " + instructor + "\nResource: " + resource);
+         event.removeAllReminders();
+         event.addEmailReminder(1440); // 24 hours reminder
+         event.addEmailReminder(720); // 12 hours reminder
+         event.addEmailReminder(360); // 6 hours reminder
+         event.addEmailReminder(180); // 3 hours reminder
+         event.addSmsReminder(180); // 3 hours reminder
+       }
+    }
 }
 
 
