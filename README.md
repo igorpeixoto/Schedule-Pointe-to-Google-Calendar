@@ -32,6 +32,10 @@ The script will create a new spreadsheet called "Schedule Pointe to Google Cal" 
 If somehow the spreadsheet gets deleted, don't worry, the next time the script runs it will create it again.
 The only problem is that you may end up having some duplicated events on your calendar (but just in the first run).
 
+## ToDo
+
+Automatic change timezone when DST (Daylight Saving Time) start/end
+
 ## CONTRIBUTORS
 
 * Igor Peixoto - [Github](//github.com/igorpeixoto)
